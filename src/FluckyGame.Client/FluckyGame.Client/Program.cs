@@ -1,18 +1,23 @@
 using System;
 using System.Net.Sockets;
 using System.Windows.Forms;
+using Newtonsoft.Json;
+using System.IO;
 
 namespace FluckyGame.Client
 {
-    static class Program
+    internal static class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
+            //TODO: error handling !!!
+            var settings = JsonConvert.DeserializeObject<ClientSettings>(File.ReadAllText("client.json"));
+
             TcpClient tcpClient;
 
             try
             {
-                tcpClient = new TcpClient("home.brunner.ninja", 8001);
+                tcpClient = new TcpClient(settings.server.hostname, settings.server.port);
             }
             catch (Exception ex)
             {
@@ -20,7 +25,7 @@ namespace FluckyGame.Client
                 return;
             }
 
-            using (Game1 game = new Game1(tcpClient))
+            using (Game1 game = new Game1(tcpClient, settings))
                 game.Run();
         }
     }

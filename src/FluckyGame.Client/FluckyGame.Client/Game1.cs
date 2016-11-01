@@ -14,7 +14,7 @@ using FluckyGame.Library;
 
 namespace FluckyGame.Client
 {
-    public class Game1 : Microsoft.Xna.Framework.Game
+    internal class Game1 : Microsoft.Xna.Framework.Game
     {
         public static Game1 currentInstance;
         public static Random random;
@@ -47,7 +47,7 @@ namespace FluckyGame.Client
             random = new Random();
         }
 
-        public Game1(TcpClient tcpClient)
+        public Game1(TcpClient tcpClient, ClientSettings clientSettings)
         {
             this.tcpClient = tcpClient;
 
@@ -55,8 +55,9 @@ namespace FluckyGame.Client
 
             graphicsDeviceManager = new GraphicsDeviceManager(this)
             {
-                PreferredBackBufferWidth = 1920 / 2,
-                PreferredBackBufferHeight = 1080 / 2
+                PreferredBackBufferWidth = clientSettings.resolution.width,
+                PreferredBackBufferHeight = clientSettings.resolution.height,
+                IsFullScreen = clientSettings.resolution.fullscreen
             };
             Content.RootDirectory = "Content";
             

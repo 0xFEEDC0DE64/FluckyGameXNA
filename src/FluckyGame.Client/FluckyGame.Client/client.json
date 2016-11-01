@@ -1,0 +1,11 @@
+﻿{
+  "resolution": {
+    "width": 3840,
+    "height": 2160,
+    "fullscreen": true
+  },
+  "server": {
+    "hostname": "localhost",
+    "port": 8001
+  }
+}
