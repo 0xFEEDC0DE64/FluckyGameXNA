@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using Newtonsoft.Json;
 using Microsoft.Xna.Framework;
 
 namespace FluckyGame.Server
@@ -17,9 +19,13 @@ namespace FluckyGame.Server
         internal static Random random;
         internal static List<Entity> entities;
 
+        internal static ServerSettings settings;
+
         private static void Main(string[] args)
         {
             Console.WriteLine("Initializing FluckyGame Server 1.0...");
+
+            settings = JsonConvert.DeserializeObject<ServerSettings>(File.ReadAllText("server.json"));
 
             clients = new List<Client>();
 
@@ -76,7 +82,7 @@ namespace FluckyGame.Server
 
         private static void AcceptConnections()
         {
-            var listener = new TcpListener(IPAddress.Any, 8001);
+            var listener = new TcpListener(IPAddress.Any, settings.listeningPort);
             listener.Start();
             while (true)
             {
