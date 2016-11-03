@@ -35,17 +35,19 @@ namespace FluckyGame.Server
 
                 Program.entities.Add(playerEntity = new Entity(Guid.NewGuid().ToString(), "dude", Vector3.Zero, Vector3.Zero, new Vector3(1)));
 
+                var packet = new Packet() {
+                    {"type", "NEW" },
+                    {"id", playerEntity.Id },
+                    {"model", playerEntity.Model },
+                    {"position", playerEntity.Position },
+                    {"rotation", playerEntity.Rotation },
+                    {"scalation", playerEntity.Scalation }
+                };
+
                 lock (Program.clients)
                     foreach (var client in Program.clients)
                         if(client != this)
-                            client.SendPacket(new Packet() {
-                                {"type", "NEW" },
-                                {"id", playerEntity.Id },
-                                {"model", playerEntity.Model },
-                                {"position", playerEntity.Position },
-                                {"rotation", playerEntity.Rotation },
-                                {"scalation", playerEntity.Scalation }
-                            });
+                            client.SendPacket(packet);
             }
 
             thread = new Thread(ReceivePackets);
@@ -77,16 +79,18 @@ namespace FluckyGame.Server
 
                             Program.entities.Add(entity);
 
+                            var newPacket = new Packet() {
+                                {"type", "NEW" },
+                                {"id", entity.Id },
+                                {"model", entity.Model },
+                                {"position", entity.Position },
+                                {"rotation", entity.Rotation },
+                                {"scalation", entity.Scalation }
+                            };
+
                             lock (Program.clients)
                                 foreach (var client in Program.clients)
-                                    client.SendPacket(new Packet() {
-                                        {"type", "NEW" },
-                                        {"id", entity.Id },
-                                        {"model", entity.Model },
-                                        {"position", entity.Position },
-                                        {"rotation", entity.Rotation },
-                                        {"scalation", entity.Scalation }
-                                    });
+                                    client.SendPacket(newPacket);
                         }
                     }
                     else if (type == "PLAYER")
@@ -94,15 +98,17 @@ namespace FluckyGame.Server
                         playerEntity.Position = (Vector3)packet["position"];
                         playerEntity.Rotation = (Vector3)packet["rotation"];
 
+                        var newPacket = new Packet() {
+                            {"type", "UPDATE" },
+                            {"id", playerEntity.Id },
+                            {"position", playerEntity.Position },
+                            {"rotation", playerEntity.Rotation }
+                        };
+
                         lock (Program.clients)
                             foreach (var client in Program.clients)
                                 if(client != this)
-                                    client.SendPacket(new Packet() {
-                                        {"type", "UPDATE" },
-                                        {"id", playerEntity.Id },
-                                        {"position", playerEntity.Position },
-                                        {"rotation", playerEntity.Rotation }
-                                    });
+                                    client.SendPacket(newPacket);
                     }
                     else
                         throw new Exception("Unknown packet type!");
@@ -116,12 +122,13 @@ namespace FluckyGame.Server
                     Program.clients.Remove(this);
                 lock (Program.entities)
                     Program.entities.Remove(playerEntity);
+                var newPacket = new Packet() {
+                    { "type", "REMOVE" },
+                    { "id", playerEntity.Id }
+                };
                 lock (Program.clients)
                     foreach (var client in Program.clients)
-                        client.SendPacket(new Packet() {
-                            { "type", "REMOVE" },
-                            { "id", playerEntity.Id }
-                        });
+                        client.SendPacket(newPacket);
                 networkStream.Dispose();
                 tcpClient.Dispose();
                 return;

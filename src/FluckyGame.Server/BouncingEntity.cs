@@ -28,13 +28,15 @@ namespace FluckyGame.Server
 
             Position.Y += ySpeed;
 
+            var packet = new Packet() {
+                {"type", "UPDATE" },
+                {"id", Id },
+                {"position", Position }
+            };
+
             lock (Program.clients)
                 foreach (var client in Program.clients)
-                    client.SendPacket(new Packet() {
-                                {"type", "UPDATE" },
-                                {"id", Id },
-                                {"position", Position }
-                            });
+                    client.SendPacket(packet);
         }
     }
 }

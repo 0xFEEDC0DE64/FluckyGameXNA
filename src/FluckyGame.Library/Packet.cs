@@ -9,11 +9,13 @@ namespace FluckyGame.Library
     [Serializable]
     public class Packet : Dictionary<string, object>
     {
-        private static readonly IFormatter formatter;
+        MemoryStream memoryStream;
+
+        private static readonly Queue<IFormatter> formatters;
 
         static Packet()
         {
-            formatter = new BinaryFormatter();
+            formatters = new Queue<IFormatter>();
         }
 
         public Packet() : base() { }
@@ -32,7 +34,27 @@ namespace FluckyGame.Library
 
         public static Packet Receive(Stream stream)
         {
-            var obj = formatter.Deserialize(stream);
+            IFormatter formatter;
+
+            lock(formatters)
+            {
+                if (formatters.Count == 0)
+                    formatter = new BinaryFormatter();
+                else
+                    formatter = formatters.Dequeue();
+            }
+
+            object obj;
+
+            try
+            {
+                obj = formatter.Deserialize(stream);
+            }
+            finally
+            {
+                lock (formatters)
+                    formatters.Enqueue(formatter);
+            }
 
             var packet = obj as Packet;
             if (packet == null)
@@ -41,9 +63,41 @@ namespace FluckyGame.Library
             return packet;
         }
 
+        public void ClearCache()
+        {
+            memoryStream = null;
+        }
+
         public void Send(Stream stream)
         {
-            formatter.Serialize(stream, this);
+            IFormatter formatter;
+
+            lock (formatters)
+            {
+                if (formatters.Count == 0)
+                    formatter = new BinaryFormatter();
+                else
+                    formatter = formatters.Dequeue();
+            }
+
+            if (memoryStream == null)
+            {
+                memoryStream = new MemoryStream();
+
+                try
+                {
+                    formatter.Serialize(memoryStream, this);
+                }
+                finally
+                {
+                    lock (formatters)
+                        formatters.Enqueue(formatter);
+                }
+            }
+
+            memoryStream.Seek(0, SeekOrigin.Begin);
+
+            memoryStream.CopyTo(stream);
         }
     }
 }
