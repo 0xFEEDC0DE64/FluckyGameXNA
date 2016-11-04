@@ -42,6 +42,8 @@ namespace FluckyGame.Client
         private Queue<Packet> queue;
         private bool exiting;
 
+        public int[,] world;
+
         static Game1()
         {
             random = new Random();
@@ -120,10 +122,15 @@ namespace FluckyGame.Client
                     effect.TextureEnabled = true;
                 }
 
+            world = new int[200, 200];
+            for (int y = 0; y < world.GetLength(1); y++)
+                for (int x = 0; x < world.GetLength(0); x++)
+                    world[x, y] = 25 + (int)((float)Math.Sin((double)x / 10) * (float)Math.Sin((double)y / 10) * 25f);
+
             entities = new List<Entity>()
             {
                 (player = new PlayerEntity()),
-                (terrain = new TerrainEntity(200, 200, GraphicsDevice, projection))
+                (terrain = new TerrainEntity(world, GraphicsDevice, projection))
             };
 
             entitiesById = new Dictionary<string, ModelEntity>();

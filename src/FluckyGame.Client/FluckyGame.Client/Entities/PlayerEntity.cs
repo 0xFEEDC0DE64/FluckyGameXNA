@@ -28,6 +28,9 @@ namespace FluckyGame.Client.Entities
             AnimationLooping = true;
 
             cameraDistance = 200;
+
+            UpdateY();
+            UpdateWorld();
         }
 
         public override void Update(GameTime gameTime, KeyboardState keyboardState, MouseState mouseState)
@@ -98,6 +101,7 @@ namespace FluckyGame.Client.Entities
                 AnimationPlaying = false;
             }
 
+            UpdateY();
             UpdateWorld();
 
             var test = new Vector3(0, 50, 0);
@@ -112,6 +116,19 @@ namespace FluckyGame.Client.Entities
                             meffect.View = view;
                         }
             Game1.currentInstance.terrain.View = view;
+        }
+
+        public void UpdateY()
+        {
+            var x = (int)Math.Round(Position.X / 10);
+            var z = (int)Math.Round(Position.Z / 10);
+
+            if (x < 0 || z < 0 || x >= Game1.currentInstance.world.GetLength(0) || z >= Game1.currentInstance.world.GetLength(1))
+                return;
+
+            var y = Game1.currentInstance.world[x, z];
+
+            Position.Y = y - 25;
         }
     }
 }
